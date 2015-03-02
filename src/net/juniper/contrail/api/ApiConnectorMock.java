@@ -601,6 +601,7 @@ public class ApiConnectorMock implements ApiConnector {
             Class<?extends ApiObjectBase> refCls = getVncClass(refName);
             for (ObjectReference<ApiPropertyBase> ref: nv) {
                  String uuid = findByName(refCls, ref.getReferredName());
+                 updateField(ref, "uuid", uuid);
                  ApiObjectBase refObj = findById(refCls, uuid);
                  if (refObj == null) {
                     s_logger.debug("Can not find obj for class: " + _apiBuilder.getTypename(refCls) 
@@ -614,6 +615,25 @@ public class ApiConnectorMock implements ApiConnector {
         return;        
     }
 
+    private void updateField(ObjectReference<ApiPropertyBase> obj, String fieldName, String value)
+    {
+        Class<?> cls = obj.getClass();
+
+        Field field = null;
+        try {
+            field = cls.getDeclaredField(fieldName);
+            field.setAccessible(true);
+        } catch (Exception e) {
+            s_logger.debug("no field " + fieldName + ", \n" + e); 
+            return;
+        }
+        try {
+             field.set(obj, value);
+        } catch (Exception ex) {
+             s_logger.warn("Unable to set " + field.getName() + ": " + ex.getMessage());
+        }
+        s_logger.debug("Updated " + fieldName + " to " + value + " \n" ); 
+    }
     private void updateObjectVerify(ApiObjectBase obj, ApiObjectBase other, String fieldName) throws IOException {
         s_logger.debug("updateObjectVerify(cls, obj, other-cls, other, field): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() + "," + _apiBuilder.getTypename(other.getClass()) + ", " + other.getName() + "," + fieldName);
         Class<?> cls = obj.getClass();
