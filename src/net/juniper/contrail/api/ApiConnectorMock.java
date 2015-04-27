@@ -227,6 +227,22 @@ public class ApiConnectorMock implements ApiConnector {
     }
 
     @Override
+    public ApiConnector credentials(String username, String password) {
+        return this;
+    }
+    @Override
+    public ApiConnector tenantName(String tenant) {
+        return this;
+    }
+    @Override
+    public ApiConnector authToken(String token) {
+        return this;
+    }
+    @Override
+    public ApiConnector authServer(String type, String url) {
+        return this;
+    }
+    @Override
     public synchronized boolean create(ApiObjectBase obj) throws IOException {
         s_logger.debug("create(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
         if (validate(obj) == false) {
