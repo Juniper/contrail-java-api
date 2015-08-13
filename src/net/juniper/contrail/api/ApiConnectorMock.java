@@ -209,7 +209,6 @@ public class ApiConnectorMock implements ApiConnector {
                 /* update child object back reference to its parent */
                 s_logger.debug("Verify Establish child(" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() 
                     + ") => backref to parent(" + _apiBuilder.getTypename(parent.getClass()) + ", " + parent.getName() + ")");
-                updateObjectVerify(obj, parent, getRefname(parent.getClass()) + "_back_refs");
             } catch (Exception e) {
                 s_logger.debug("Exception in updateObject : " + e);
                 return false;
@@ -287,10 +286,6 @@ public class ApiConnectorMock implements ApiConnector {
                          + ") => child (" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() + ")");
                 /* update parent object with new child info */
                 updateObject(parent, obj, getRefname(obj.getClass()) + "s");
-                /* update child object back reference to its parent */
-                s_logger.debug("Establish child(" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() 
-                     + ") => backref to parent(" + _apiBuilder.getTypename(parent.getClass()) + ", " + parent.getName() + ")");
-                updateObject(obj, parent, getRefname(parent.getClass()) + "_back_refs");
             } catch (Exception e) {
                 s_logger.debug("Exception in updateObject : " + e);
             }
