@@ -46,6 +46,7 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 
 class ApiConnectorImpl implements ApiConnector {
@@ -151,7 +152,7 @@ class ApiConnectorImpl implements ApiConnector {
         return  _api_port;
     }
 
-    public HttpResponse execute(String method, String uri, StringEntity entity) throws IOException {
+    public HttpResponse execute(String method, String uri, StringEntity entity) throws IOException, NullPointerException {
 
         checkConnection();
 
@@ -171,7 +172,8 @@ class ApiConnectorImpl implements ApiConnector {
             response.setParams(_params);
             _httpexecutor.postProcess(response, _httpproc, _httpcontext);
         } catch (Exception e) {
-            e.printStackTrace();
+            String stackTrace = Throwables.getStackTraceAsString(e);
+            s_logger.error(stackTrace);
         }
 
         s_logger.info("<< Response Status: " + response.getStatusLine());
