@@ -8,6 +8,11 @@ import java.io.IOException;
 import java.util.List;
 
 public interface ApiConnector {
+    ApiConnector credentials(String username, String password);
+    ApiConnector tenantName(String tenantName);
+    ApiConnector authToken(String token);
+    ApiConnector authServer(String type, String url);
+
     boolean create(ApiObjectBase obj) throws IOException;
     boolean read(ApiObjectBase obj) throws IOException;
     boolean update(ApiObjectBase obj) throws IOException;

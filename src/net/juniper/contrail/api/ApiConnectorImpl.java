@@ -46,7 +46,13 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
+import org.openstack4j.api.OSClient;
+import org.openstack4j.openstack.OSFactory;
+import org.openstack4j.api.exceptions.AuthenticationException;
+import org.openstack4j.api.client.*;
+
 import com.google.common.collect.ImmutableList;
+import com.google.common.base.Throwables;
 
 class ApiConnectorImpl implements ApiConnector {
     private static final Logger s_logger =
@@ -55,6 +61,14 @@ class ApiConnectorImpl implements ApiConnector {
     private String _api_hostname;
     private int _api_port;
     private ApiBuilder _apiBuilder;
+
+    private String _username;
+    private String _password;
+    private String _tenant;
+    private boolean _has_input_authtoken;
+    private String _authtoken;
+    private String _authtype;
+    private String _authurl;
 
     // HTTP Connection parameters
     private HttpParams _params;
@@ -68,6 +82,7 @@ class ApiConnectorImpl implements ApiConnector {
     public ApiConnectorImpl(String hostname, int port) {
         _api_hostname = hostname;
         _api_port = port;
+        _has_input_authtoken = true;
         initHttpClient();
         initHttpServerParams(hostname, port); 
         _apiBuilder = new ApiBuilder();
@@ -113,6 +128,31 @@ class ApiConnectorImpl implements ApiConnector {
         return;
     }
 
+    @Override
+    public ApiConnector credentials(String username, String password) {
+        _username = username;
+        _password = password;
+        return this;
+    }
+    @Override
+    public ApiConnector tenantName(String tenant) {
+        _tenant = tenant;
+        return this;
+    }
+    @Override
+    public ApiConnector authToken(String token) {
+        _has_input_authtoken = true;
+        _authtoken = token;
+        return this;
+    }
+    @Override
+    public ApiConnector authServer(String type, String url) {
+        _has_input_authtoken = false;
+        _authtype = type;
+        _authurl = url;
+        return this;
+    }
+
     private void checkResponseKeepAliveStatus(HttpResponse response) throws IOException {
 
         if (!_connectionStrategy.keepAlive(response, _httpcontext)) {
@@ -151,7 +191,39 @@ class ApiConnectorImpl implements ApiConnector {
         return  _api_port;
     }
 
+    // return value indicates whether the token changed
+    private boolean authenticate() {
+        if (_has_input_authtoken) {
+            return false;
+        }
+
+        _authtoken = null;
+        if (_authtype == "keystone") {
+            try {
+                IOSClientBuilder.V2 osv2 = OSFactory.builder().endpoint(_authurl)
+                    .credentials(_username, _password).tenantName(_tenant
+                OSClient os = osv2.authenticate();
+                _authtoken = os.getToken().getId();
+                return true;
+            }
+            catch (Exception e) {
+                s_logger.warn("authenticate to keystone " + _authurl + "failed: " + e);
+                String stackTrace = Throwables.getStackTraceAsString(e);
+                s_logger.error(stackTrace);
+                return false;
+            }
+        }
+
+        // authenticate type unknown
+        return false;
+    }
+
     public HttpResponse execute(String method, String uri, StringEntity entity) throws IOException {
+        return execute_doauth(method, uri, entity, false);
+    }
+
+    private HttpResponse execute_doauth(String method, String uri, StringEntity entity,
+                boolean retry_after_authn) throws IOException {
 
         checkConnection();
 
@@ -165,6 +237,9 @@ class ApiConnectorImpl implements ApiConnector {
         }
         HttpResponse response  = null;
         request.setParams(_params);
+        if (_authtoken != null) {
+            request.setHeader("X-AUTH-TOKEN", _authtoken);
+        }
         try {
             _httpexecutor.preProcess(request, _httpproc, _httpcontext);
             response = _httpexecutor.execute(request, _connection, _httpcontext);
@@ -173,8 +248,17 @@ class ApiConnectorImpl implements ApiConnector {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         s_logger.info("<< Response Status: " + response.getStatusLine());
+
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED
+                && !retry_after_authn) {
+            if (authenticate()) {
+                getResponseData(response);
+                checkResponseKeepAliveStatus(response);
+                return execute_doauth(method, uri, entity, true);
+            }
+        }
+
         return response;
     }
 
