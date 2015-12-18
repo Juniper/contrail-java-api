@@ -243,9 +243,14 @@ class ApiConnectorImpl implements ApiConnector {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        s_logger.info("<< Response Status: " + response.getStatusLine());
 
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED
+        if (response == null) {
+             s_logger.error("<< Received null response from the Api server");
+             return null;
+        }
+
+        s_logger.info("<< Response Status: " + response.getStatusLine());
+        if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED)
                 && !retry_after_authn) {
             if (authenticate()) {
                 getResponseData(response);
