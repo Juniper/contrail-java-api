@@ -245,8 +245,13 @@ class ApiConnectorImpl implements ApiConnector {
         }
 
         if (response == null) {
-             s_logger.error("<< Received null response from the Api server");
-             return null;
+            
+             if (retry_after_authn) {
+                 s_logger.error("<< Received null response from the Api server the second time");
+                 return null;
+             }
+             s_logger.error("<< Received null response from the Api server, trying one more time");
+             return execute_doauth(method, uri, entity, true);
         }
 
         s_logger.info("<< Response Status: " + response.getStatusLine());
