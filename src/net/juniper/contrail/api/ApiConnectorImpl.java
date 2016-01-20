@@ -241,11 +241,16 @@ class ApiConnectorImpl implements ApiConnector {
             response.setParams(_params);
             _httpexecutor.postProcess(response, _httpproc, _httpcontext);
         } catch (Exception e) {
-            e.printStackTrace();
+            if (retry_after_authn) {
+                s_logger.error("<< Received exception from the Api server the second time");
+                e.printStackTrace();
+                return null;
+            }
+            s_logger.info("<< Api server connection timed out, trying one more time");
+            return execute_doauth(method, uri, entity, true);
         }
 
         if (response == null) {
-            
              if (retry_after_authn) {
                  s_logger.error("<< Received null response from the Api server the second time");
                  return null;
