@@ -8,11 +8,8 @@ import static org.junit.Assert.*;
 import java.net.ServerSocket;
 import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.UUID;
 import java.io.File;
-
-import net.juniper.contrail.api.ApiConnectorFactory;
 import net.juniper.contrail.api.ApiObjectBase;
 import net.juniper.contrail.api.types.InstanceIp;
 import net.juniper.contrail.api.types.NetworkIpam;
@@ -23,7 +20,6 @@ import net.juniper.contrail.api.types.VirtualNetwork;
 import net.juniper.contrail.api.types.VnSubnetsType;
 import net.juniper.contrail.api.types.NetworkPolicy;
 import net.juniper.contrail.api.types.Project;
-import net.juniper.contrail.api.types.VnSubnetsType;
 import net.juniper.contrail.api.ApiConnector;
 
 import org.apache.log4j.Logger;

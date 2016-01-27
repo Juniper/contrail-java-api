@@ -3,47 +3,27 @@
  *   */
 package net.juniper.contrail.api;
 
-import static org.junit.Assert.*;
-import junit.framework.TestCase;
-
-import java.net.ServerSocket;
-import java.io.IOException;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.UUID;
-import java.io.File;
-import java.io.OutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.FileOutputStream;
- 
 import net.juniper.contrail.api.ApiConnectorFactory;
 import net.juniper.contrail.api.ApiObjectBase;
 import net.juniper.contrail.api.types.Domain;
 import net.juniper.contrail.api.types.InstanceIp;
 import net.juniper.contrail.api.types.NetworkIpam;
-import net.juniper.contrail.api.types.SubnetType;
 import net.juniper.contrail.api.types.VirtualMachine;
-import net.juniper.contrail.api.types.VirtualMachineInterface;
 import net.juniper.contrail.api.types.VirtualNetwork;
-import net.juniper.contrail.api.types.VnSubnetsType;
 import net.juniper.contrail.api.types.NetworkPolicy;
 import net.juniper.contrail.api.types.Project;
 import net.juniper.contrail.api.types.FloatingIp;
-import net.juniper.contrail.api.types.VnSubnetsType;
 import net.juniper.contrail.api.types.ServiceInstance;
 import net.juniper.contrail.api.ApiConnector;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.apache.log4j.Logger;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.exec.ExecuteResultHandler;
 import org.apache.commons.lang.StringUtils;
 
 public class ContrailApiMockTest {
