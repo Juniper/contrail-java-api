@@ -286,6 +286,7 @@ public class ApiConnectorMock implements ApiConnector {
                          + ") => child (" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() + ")");
                 /* update parent object with new child info */
                 updateObject(parent, obj, getRefname(obj.getClass()) + "s");
+                obj.setParentUuid(parent.getUuid());
             } catch (Exception e) {
                 s_logger.debug("Exception in updateObject : " + e);
             }

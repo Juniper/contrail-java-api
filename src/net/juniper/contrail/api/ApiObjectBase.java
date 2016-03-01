@@ -62,6 +62,18 @@ public abstract class ApiObjectBase implements Serializable {
         return parent_uuid;
     }
     
+    public void setParentUuid(String uuid) {
+        this.parent_uuid = uuid;
+    }
+
+    public String getParentType() {
+        return parent_type;
+    }
+
+    public void setParentType(String parent_type) {
+        this.parent_type = parent_type;
+    }
+
     public List<String> getQualifiedName() {
         return fqNameToList();
     }
