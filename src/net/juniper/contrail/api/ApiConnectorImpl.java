@@ -318,6 +318,12 @@ class ApiConnectorImpl implements ApiConnector {
                 }
             }
         }
+
+        // getDeclaredFields doesn't return fields from parent class (ApiObjectBase)
+        // Update parentUuid in parentClass.
+        if (obj.getParentUuid() == null && resp.getParentUuid() != null) {
+            obj.setParentUuid(resp.getParentUuid());
+        }
     }
 
     @Override
