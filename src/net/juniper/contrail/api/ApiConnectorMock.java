@@ -245,9 +245,10 @@ public class ApiConnectorMock implements ApiConnector {
     public synchronized boolean create(ApiObjectBase obj) throws IOException {
         s_logger.debug("create(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
         if (validate(obj) == false) {
-            s_logger.error("can not create obj: " + obj.getName() + ", validate failed");
+            s_logger.error("can not create (cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " 
+                           + obj.getName() + ", validate failed");
             return false;   
-        }   
+        }
         String uuid = obj.getUuid();
         if (uuid == null) {
            uuid = UUID.randomUUID().toString();
