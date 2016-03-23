@@ -76,17 +76,18 @@ class ApiConnectorImpl implements ApiConnector {
     private HttpHost _httphost;
     private DefaultHttpClientConnection _connection;
     private ConnectionReuseStrategy _connectionStrategy;
+    public final static int MAX_RETRIES = 5;
 
     public ApiConnectorImpl(String hostname, int port) {
         _api_hostname = hostname;
         _api_port = port;
         _has_input_authtoken = true;
         initHttpClient();
-        initHttpServerParams(hostname, port); 
+        initHttpServerParams(hostname, port);
         _apiBuilder = new ApiBuilder();
     }
-    
-    
+
+
     private void initHttpClient() {
         _params = new SyncBasicHttpParams();
         HttpProtocolParams.setVersion(_params, HttpVersion.HTTP_1_1);
@@ -160,11 +161,11 @@ class ApiConnectorImpl implements ApiConnector {
 
     private void checkConnection() throws IOException {
         if (!_connection.isOpen()) {
-            s_logger.info("http connection <" + _httphost.getHostName() + ", " + 
+            s_logger.info("http connection <" + _httphost.getHostName() + ", " +
                     _httphost.getPort() + "> does not exit");
             Socket socket = new Socket(_httphost.getHostName(), _httphost.getPort());
             _connection.bind(socket, _params);
-            s_logger.info("http connection <" + _httphost.getHostName() + ", " + 
+            s_logger.info("http connection <" + _httphost.getHostName() + ", " +
                     _httphost.getPort() + "> established");
         }
         return;
@@ -174,7 +175,7 @@ class ApiConnectorImpl implements ApiConnector {
         try {
             if (_connection.isOpen()) {
                 _connection.close();        // close server connection
-            }    
+            }
         } finally {
             super.finalize();
         }
@@ -214,11 +215,11 @@ class ApiConnectorImpl implements ApiConnector {
     }
 
     public HttpResponse execute(String method, String uri, StringEntity entity) throws IOException {
-        return execute_doauth(method, uri, entity, false);
+        return execute_doauth(method, uri, entity, MAX_RETRIES);
     }
 
     private HttpResponse execute_doauth(String method, String uri, StringEntity entity,
-                boolean retry_after_authn) throws IOException {
+                int retry_count) throws IOException {
 
         checkConnection();
 
@@ -241,31 +242,34 @@ class ApiConnectorImpl implements ApiConnector {
             response.setParams(_params);
             _httpexecutor.postProcess(response, _httpproc, _httpcontext);
         } catch (Exception e) {
-            if (retry_after_authn) {
-                s_logger.error("<< Received exception from the Api server the second time");
+            if (retry_count == 0) {
+                s_logger.error("<< Received exception from the Api server, max retries exhausted");
                 e.printStackTrace();
                 return null;
             }
-            s_logger.info("<< Api server connection timed out, trying one more time");
-            return execute_doauth(method, uri, entity, true);
+            s_logger.info("<< Api server connection timed out, retrying " + retry_count + " more times");
+            return execute_doauth(method, uri, entity, --retry_count);
         }
 
         if (response == null) {
-             if (retry_after_authn) {
-                 s_logger.error("<< Received null response from the Api server the second time");
+             if (retry_count == 0) {
+                 s_logger.error("<< Received null response from the Api server, max retries exhausted");
                  return null;
              }
-             s_logger.error("<< Received null response from the Api server, trying one more time");
-             return execute_doauth(method, uri, entity, true);
+             s_logger.error("<< Received null response from the Api server, retrying "
+                            + retry_count + " more times");
+             return execute_doauth(method, uri, entity, --retry_count);
         }
 
         s_logger.info("<< Response Status: " + response.getStatusLine());
-        if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED)
-                && !retry_after_authn) {
+        if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED
+                && retry_count > 0)) {
             if (authenticate()) {
                 getResponseData(response);
                 checkResponseKeepAliveStatus(response);
-                return execute_doauth(method, uri, entity, true);
+                s_logger.error("<< Received \"unauthorized response from the Api server, retrying "
+                        + retry_count + " more times after authentication");
+                return execute_doauth(method, uri, entity, --retry_count);
             }
         }
 
@@ -320,7 +324,7 @@ class ApiConnectorImpl implements ApiConnector {
     public synchronized boolean create(ApiObjectBase obj) throws IOException {
         final String typename = _apiBuilder.getTypename(obj.getClass());
         final String jsdata = ApiSerializer.serializeObject(typename, obj);
-        final HttpResponse response = execute(HttpPost.METHOD_NAME, "/" + typename + "s", 
+        final HttpResponse response = execute(HttpPost.METHOD_NAME, "/" + typename + "s",
                 new StringEntity(jsdata, ContentType.APPLICATION_JSON));
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -357,14 +361,14 @@ class ApiConnectorImpl implements ApiConnector {
     public synchronized boolean update(ApiObjectBase obj) throws IOException {
         final String typename = _apiBuilder.getTypename(obj.getClass());
         final String jsdata = ApiSerializer.serializeObject(typename, obj);
-        final HttpResponse response = execute(HttpPut.METHOD_NAME, "/" + typename + '/' + obj.getUuid(), 
+        final HttpResponse response = execute(HttpPut.METHOD_NAME, "/" + typename + '/' + obj.getUuid(),
                 new StringEntity(jsdata, ContentType.APPLICATION_JSON));
         boolean success = (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK);
         if (!success) {
             s_logger.warn("<< Response:" + response.getStatusLine().getReasonPhrase());
         }
 
-        EntityUtils.consumeQuietly(response.getEntity());  
+        EntityUtils.consumeQuietly(response.getEntity());
         checkResponseKeepAliveStatus(response);
         return success;
     }
@@ -372,7 +376,7 @@ class ApiConnectorImpl implements ApiConnector {
     @Override
     public synchronized boolean read(ApiObjectBase obj) throws IOException {
         final String typename = _apiBuilder.getTypename(obj.getClass());
-        final HttpResponse response = execute(HttpGet.METHOD_NAME, 
+        final HttpResponse response = execute(HttpGet.METHOD_NAME,
                 "/" + typename + '/' + obj.getUuid(), null);
         ApiObjectBase resp = null;
 
@@ -407,7 +411,7 @@ class ApiConnectorImpl implements ApiConnector {
 
     @Override
     public synchronized void delete(Class<? extends ApiObjectBase> cls, String uuid) throws IOException {
-        
+
         try {
             if (findById(cls, uuid) == null) {
                 return;
@@ -415,9 +419,9 @@ class ApiConnectorImpl implements ApiConnector {
         } catch (IOException ex) {
             return;
         }
-        
+
         final String typename = _apiBuilder.getTypename(cls);
-        final HttpResponse response = execute(HttpDelete.METHOD_NAME, 
+        final HttpResponse response = execute(HttpDelete.METHOD_NAME,
                 "/" + typename +  '/' + uuid, null);
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -428,7 +432,7 @@ class ApiConnectorImpl implements ApiConnector {
             checkResponseKeepAliveStatus(response);
             return;
         }
-        EntityUtils.consumeQuietly(response.getEntity());  
+        EntityUtils.consumeQuietly(response.getEntity());
         checkResponseKeepAliveStatus(response);
     }
 
@@ -455,12 +459,12 @@ class ApiConnectorImpl implements ApiConnector {
     @Override
     public synchronized ApiObjectBase findById(Class<? extends ApiObjectBase> cls, String uuid) throws IOException {
         final String typename = _apiBuilder.getTypename(cls);
-        final HttpResponse response = execute(HttpGet.METHOD_NAME, 
+        final HttpResponse response = execute(HttpGet.METHOD_NAME,
                 '/' + typename + '/' + uuid, null);
         ApiObjectBase object = null;
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            EntityUtils.consumeQuietly(response.getEntity());  
+            EntityUtils.consumeQuietly(response.getEntity());
             checkResponseKeepAliveStatus(response);
         } else {
             object = _apiBuilder.jsonToApiObject(getResponseData(response), cls);
@@ -495,11 +499,11 @@ class ApiConnectorImpl implements ApiConnector {
     // body: {"type": class, "fq_name": [parent..., name]}
     public synchronized String findByName(Class<? extends ApiObjectBase> cls, List<String> name_list) throws IOException {
         String jsonStr = _apiBuilder.buildFqnJsonString(cls, name_list);
-        final HttpResponse response = execute(HttpPost.METHOD_NAME, "/fqname-to-id",  
+        final HttpResponse response = execute(HttpPost.METHOD_NAME, "/fqname-to-id",
                 new StringEntity(jsonStr, ContentType.APPLICATION_JSON));
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            EntityUtils.consumeQuietly(response.getEntity());  
+            EntityUtils.consumeQuietly(response.getEntity());
             checkResponseKeepAliveStatus(response);
             return null;
         }
@@ -528,7 +532,7 @@ class ApiConnectorImpl implements ApiConnector {
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             s_logger.warn("list failed with :" + response.getStatusLine().getReasonPhrase());
-            EntityUtils.consumeQuietly(response.getEntity());  
+            EntityUtils.consumeQuietly(response.getEntity());
             checkResponseKeepAliveStatus(response);
             return null;
         }
@@ -546,11 +550,11 @@ class ApiConnectorImpl implements ApiConnector {
         return list;
     }
 
-    
+
     @Override
     public <T extends ApiPropertyBase> List<? extends ApiObjectBase>
         getObjects(Class<? extends ApiObjectBase> cls, List<ObjectReference<T>> refList) throws IOException {
-        
+
         List<ApiObjectBase> list = new ArrayList<ApiObjectBase>();
         for (ObjectReference<T> ref : refList) {
             ApiObjectBase obj = findById(cls, ref.getUuid());
@@ -561,5 +565,5 @@ class ApiConnectorImpl implements ApiConnector {
             list.add(obj);
         }
         return list;
-    }    
+    }
 }
