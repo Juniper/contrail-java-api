@@ -40,22 +40,27 @@ public class ApiSerializer {
         // Do not attempt to deserialize ApiObjectBase.parent
         return builder.excludeFieldsWithModifiers(Modifier.VOLATILE).setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").create();
     }
-    
+
     static private Gson getSerializer() {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(ObjectReference.class, new ReferenceSerializer());
         return builder.create();
     }
-    
+
     static ApiObjectBase deserialize(String str, Class<? extends ApiObjectBase> cls) {
         Gson json = getDeserializer();
         return json.fromJson(str, cls);
     }
-    
+
     static String serializeObject(String typename, ApiObjectBase obj) {
         Gson json = getSerializer();
+        if (obj instanceof VRouterApiObjectBase) {
+                JsonElement el =  json.toJsonTree(obj);
+                return el.toString();
+        }
         JsonObject js_dict = new JsonObject();
         js_dict.add(typename, json.toJsonTree(obj));
+
         return js_dict.toString();
     }
 }

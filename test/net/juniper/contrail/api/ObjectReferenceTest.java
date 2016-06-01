@@ -38,7 +38,7 @@ public class ObjectReferenceTest extends TestCase {
         String jsdata = ApiSerializer.serializeObject("virtual-machine-interface", vmi);
         assertNotSame(jsdata, -1, jsdata.indexOf("\"attr\":null"));
     }
-    
+
     @Test
     public void testAttr() {
         VirtualNetwork vn = new VirtualNetwork();
@@ -50,7 +50,7 @@ public class ObjectReferenceTest extends TestCase {
         vn.setNetworkIpam(ipam, subnets);
         String jsdata = ApiSerializer.serializeObject("virtual-network", vn);
         assertNotSame(jsdata, -1, jsdata.indexOf("192.168.0.0"));
-        
+
         final JsonParser parser = new JsonParser();
         final JsonObject js_obj = parser.parse(jsdata).getAsJsonObject();
         final JsonElement element = js_obj.get("virtual-network");
@@ -84,5 +84,31 @@ public class ObjectReferenceTest extends TestCase {
         Project result = (Project) ApiSerializer.deserialize(element.toString(), Project.class);
         assertEquals("testProject", result.getName());
         assertNotNull(result.getNetworkPolicys());
+    }
+
+    @Test
+    public void testPort() {
+        Port port = new Port();
+        port.setName("Port1");
+        port.setId("VIF_UUID");
+        port.setUuid("VIF_UUID");
+        port.setInstance_id("VM_UUID");
+        port.setSystem_name("INTF_NAME");
+        port.setIp_address("INTF_IP");
+        port.setMac_address("MAC_ADDRESS");
+        port.setVn_id("NW_UUID");
+        port.setRx_vlan_id((short)1000);
+        port.setTx_vlan_id((short)1001);
+        port.setDisplay_name("VM-NAME");
+        port.setVm_project_id("PROJ_UUID");
+
+        String jsdata = ApiSerializer.serializeObject("port", port);
+
+        final JsonParser parser = new JsonParser();
+        final JsonObject js_obj = parser.parse(jsdata).getAsJsonObject();
+        Port result = (Port) ApiSerializer.deserialize(js_obj.toString(), Port.class);
+
+        assertEquals("VIF_UUID", result.getUuid());
+        assertEquals("VIF_UUID", result.getId());
     }
 }
