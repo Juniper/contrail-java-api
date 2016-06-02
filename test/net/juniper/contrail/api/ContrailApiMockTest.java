@@ -18,7 +18,6 @@ import net.juniper.contrail.api.types.VirtualNetwork;
 import net.juniper.contrail.api.types.NetworkPolicy;
 import net.juniper.contrail.api.types.Project;
 import net.juniper.contrail.api.types.FloatingIp;
-import net.juniper.contrail.api.Port;
 import net.juniper.contrail.api.types.ServiceInstance;
 import net.juniper.contrail.api.ApiConnector;
 import org.junit.After;
@@ -39,7 +38,7 @@ public class ContrailApiMockTest {
 
         if (_apiTest != null ) return;
 
-        initDefaultConfig();
+        initDefaultConfig(); 
         ApiConnector api = new ApiConnectorMock(null, 0);
         ((ApiConnectorMock)api).dumpConfig(VirtualNetwork.class);
         _apiTest = new ApiTestCommon(api);
@@ -61,8 +60,7 @@ public class ContrailApiMockTest {
                 ServiceInstance.class,
                 FloatingIp.class,
                 NetworkPolicy.class,
-                Project.class,
-                Port.class
+                Project.class
         };
 
         HashMap<Class<?extends ApiObjectBase>, List<HashMap<String, ApiObjectBase>>> map = new HashMap<Class<?extends ApiObjectBase>, List<HashMap<String, ApiObjectBase>>>();
@@ -83,7 +81,7 @@ public class ContrailApiMockTest {
 
         FileOutputStream fout = new FileOutputStream (defaultConfigFile);
         ObjectOutputStream objOut = new ObjectOutputStream(fout);
-        objOut.writeObject(map);
+        objOut.writeObject(map); 
         objOut.close();
         return;
     }
@@ -97,7 +95,7 @@ public class ContrailApiMockTest {
     public void testNetwork() {
         _apiTest.testNetwork();
     }
-
+   
     @Test
     public void testDeserializeReferenceList() {
         _apiTest.testDeserializeReferenceList();

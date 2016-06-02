@@ -11,10 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Iterator;
+import java.util.Collections;
 import java.util.Random;
 import java.lang.reflect.Field;
+import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.InputStream;
+
+import net.juniper.contrail.api.types.NetworkIpam;
 import net.juniper.contrail.api.types.VirtualMachine;
 import net.juniper.contrail.api.types.VirtualMachineInterface;
 import net.juniper.contrail.api.types.MacAddressesType;
@@ -26,9 +30,12 @@ import net.juniper.contrail.api.types.SecurityGroup;
 import net.juniper.contrail.api.types.InstanceIp;
 import net.juniper.contrail.api.types.FloatingIp;
 import net.juniper.contrail.api.types.FloatingIpPool;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
 
 public class ApiConnectorMock implements ApiConnector {
@@ -48,7 +55,7 @@ public class ApiConnectorMock implements ApiConnector {
         parentMap.put(SecurityGroup.class, Project.class);
         parentMap.put(FloatingIp.class, FloatingIpPool.class);
         parentMap.put(FloatingIpPool.class, VirtualNetwork.class);
-        _parentMap = parentMap;
+        _parentMap = parentMap; 
     }
 
     private static void assignAutoProperty(ApiObjectBase obj) {
@@ -62,10 +69,10 @@ public class ApiConnectorMock implements ApiConnector {
             charArray[8] = charArray[11] = charArray[14] = ':';
             addr = new String(charArray);
 
-            MacAddressesType macs = new MacAddressesType();
+            MacAddressesType macs = new MacAddressesType(); 
             macs.addMacAddress(addr);
             s_logger.debug("Assigned auto property mac address : " + addr);
-            ((VirtualMachineInterface)obj).setMacAddresses(macs);
+            ((VirtualMachineInterface)obj).setMacAddresses(macs); 
         } else if (obj.getClass() == InstanceIp.class) {
             if (((InstanceIp)obj).getAddress() != null) {
                return;
@@ -73,7 +80,7 @@ public class ApiConnectorMock implements ApiConnector {
             Random random = new Random();
             String ipString = InetAddresses.fromInteger(random.nextInt()).getHostAddress();
             s_logger.debug("Assigned auto property ip address : " + ipString);
-            ((InstanceIp)obj).setAddress(ipString);
+            ((InstanceIp)obj).setAddress(ipString); 
         }
     }
 
@@ -86,7 +93,7 @@ public class ApiConnectorMock implements ApiConnector {
             } else if (ch == '_') {
                 ch = clsname.charAt(++i);
                 ch = Character.toUpperCase(ch);
-            }
+            } 
             typename += ch;
         }
         try {
@@ -97,12 +104,12 @@ public class ApiConnectorMock implements ApiConnector {
         }
         return null;
     }
-
+    
     private static HashMap<Class<?extends ApiObjectBase>, ApiObjectBase> _defaultObjectMap;
 
     ApiConnectorMock() {
         _apiBuilder = new ApiBuilder();
-        initConfig();
+        initConfig();	
     }
 
     public ApiConnectorMock(String hostname, int port) {
@@ -111,7 +118,7 @@ public class ApiConnectorMock implements ApiConnector {
 
     public void initConfig() {
         _map = new HashMap<String, List<HashMap<String, ApiObjectBase>>>();
-        buildDefaultConfig();
+        buildDefaultConfig(); 
         buildDefaultObjectMap();
     }
 
@@ -133,7 +140,7 @@ public class ApiConnectorMock implements ApiConnector {
     }
 
     void buildDefaultObjectMap() {
-        _defaultObjectMap = new HashMap<Class<?extends ApiObjectBase>, ApiObjectBase>();
+        _defaultObjectMap = new HashMap<Class<?extends ApiObjectBase>, ApiObjectBase>();  
         try {
             _defaultObjectMap.put(Domain.class, findByFQN(Domain.class, "default-domain"));
             _defaultObjectMap.put(Project.class, findByFQN(Project.class, "default-domain:default-project"));
@@ -195,12 +202,12 @@ public class ApiConnectorMock implements ApiConnector {
         }
         if (parent != null) {
             try {
-                s_logger.debug("Verify establish parent(" + _apiBuilder.getTypename(parent.getClass()) + ", " + parent.getName()
+                s_logger.debug("Verify establish parent(" + _apiBuilder.getTypename(parent.getClass()) + ", " + parent.getName() 
                          + ") => child (" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
                 /* update parent object with new child info */
                 updateObjectVerify(parent, obj, getRefname(obj.getClass()) + "s");
                 /* update child object back reference to its parent */
-                s_logger.debug("Verify Establish child(" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName()
+                s_logger.debug("Verify Establish child(" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() 
                     + ") => backref to parent(" + _apiBuilder.getTypename(parent.getClass()) + ", " + parent.getName() + ")");
             } catch (Exception e) {
                 s_logger.debug("Exception in updateObject : " + e);
@@ -213,7 +220,7 @@ public class ApiConnectorMock implements ApiConnector {
             /* update object references it has with associated back refs */
             updateRefsVerify(obj);
         } catch (Exception e) {
-           return false;
+           return false; 
         }
         return true;
     }
@@ -238,9 +245,9 @@ public class ApiConnectorMock implements ApiConnector {
     public synchronized boolean create(ApiObjectBase obj) throws IOException {
         s_logger.debug("create(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
         if (validate(obj) == false) {
-            s_logger.error("can not create (cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", "
+            s_logger.error("can not create (cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " 
                            + obj.getName() + ", validate failed");
-            return false;
+            return false;   
         }
         String uuid = obj.getUuid();
         if (uuid == null) {
@@ -276,7 +283,7 @@ public class ApiConnectorMock implements ApiConnector {
         }
         if (parent != null) {
             try {
-                s_logger.debug("Establish parent(" + _apiBuilder.getTypename(parent.getClass()) + ", " + parent.getName()
+                s_logger.debug("Establish parent(" + _apiBuilder.getTypename(parent.getClass()) + ", " + parent.getName() 
                          + ") => child (" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() + ")");
                 /* update parent object with new child info */
                 updateObject(parent, obj, getRefname(obj.getClass()) + "s");
@@ -377,7 +384,7 @@ public class ApiConnectorMock implements ApiConnector {
         }
         HashMap<String, ApiObjectBase> uuidMap =  getUuidMap(clsData);
         HashMap<String, ApiObjectBase> fqnMap =  getFqnMap(clsData);
-
+  
         ApiObjectBase obj = uuidMap.get(uuid);
         if (obj != null && isChildrenExists(obj)) {
             s_logger.warn("children exist, can not delete");
@@ -459,7 +466,7 @@ public class ApiConnectorMock implements ApiConnector {
         ApiObjectBase obj = fqnMap.get(fqn);
         if (obj != null) {
             return obj.getUuid();
-        }
+        } 
         s_logger.debug("not found");
         return null;
     }
@@ -483,9 +490,9 @@ public class ApiConnectorMock implements ApiConnector {
         List<ApiObjectBase> list = new ArrayList<ApiObjectBase>();
         for (ApiObjectBase obj:arr) {
            if (fqnParent != null && getFqnString(obj.getQualifiedName()).startsWith(fqnParent + ":")) {
-              list.add(obj);
+              list.add(obj); 
            } else {
-              list.add(obj);
+              list.add(obj); 
            }
         }
         return list;
@@ -501,14 +508,14 @@ public class ApiConnectorMock implements ApiConnector {
            for (ApiObjectBase obj:arr) {
                if (getFqnString(obj.getQualifiedName()).startsWith(fqnParent + ":")) {
                    if (obj.getParent() == parent) {
-                       return true;
+                       return true; 
                    }
                }
            }
         }
         return false;
     }
-
+    
     @Override
     public <T extends ApiPropertyBase> List<? extends ApiObjectBase>
         getObjects(Class<? extends ApiObjectBase> cls, List<ObjectReference<T>> refList) throws IOException {
@@ -523,7 +530,7 @@ public class ApiConnectorMock implements ApiConnector {
             list.add(obj);
         }
         return list;
-    }
+    }    
 
     public String getRefname(Class<?> cls) {
         String clsname = cls.getName();
@@ -552,7 +559,7 @@ public class ApiConnectorMock implements ApiConnector {
             f.setAccessible(true);
             if (!f.getName().endsWith("_refs") || f.getName().endsWith("_back_refs")) {
                 continue;
-            }
+            } 
             List<ObjectReference<ApiPropertyBase>> nv;
             try {
                 nv = (List<ObjectReference<ApiPropertyBase>>)f.get(obj);
@@ -561,25 +568,25 @@ public class ApiConnectorMock implements ApiConnector {
                 throw new IOException("Unable to read value for " + f.getName() + ": " + ex.getMessage());
             }
 
-            if (nv == null || nv.isEmpty()) {
-                continue;
+            if (nv == null || nv.isEmpty()) { 
+                continue; 
             }
 
             String refName = f.getName().substring(0, f.getName().lastIndexOf("_refs"));
-            Class<?extends ApiObjectBase> refCls = getVncClass(refName);
+            Class<?extends ApiObjectBase> refCls = getVncClass(refName); 
             for (ObjectReference<ApiPropertyBase> ref: nv) {
                  String uuid = findByName(refCls, ref.getReferredName());
                  ApiObjectBase refObj = findById(refCls, uuid);
                  if (refObj == null) {
-                    s_logger.debug("Can not find obj for class: " + _apiBuilder.getTypename(refCls)
+                    s_logger.debug("Can not find obj for class: " + _apiBuilder.getTypename(refCls) 
                                           + ", uuid: " + ref.getUuid() +" , href: " + ref.getHRef());
-                    throw new IOException("Obj " + obj.getName() + " has a reference of type<" + _apiBuilder.getTypename(refCls) + ", but object does not exist");
+                    throw new IOException("Obj " + obj.getName() + " has a reference of type<" + _apiBuilder.getTypename(refCls) + ", but object does not exist"); 
                  }
                  s_logger.debug("Verify establish backref on(cls, obj) : " + _apiBuilder.getTypename(refCls) + " => " + refObj.getName() + " with ref(cls, obj): " + _apiBuilder.getTypename(cls) + ", " + obj.getName());
-                 updateObjectVerify(refObj, obj, getRefname(obj.getClass()) + "_back_refs");
+                 updateObjectVerify(refObj, obj, getRefname(obj.getClass()) + "_back_refs"); 
             }
         }
-        return;
+        return;        
     }
     private void updateRefs(ApiObjectBase obj) throws IOException {
         Class<?> cls = obj.getClass();
@@ -588,7 +595,7 @@ public class ApiConnectorMock implements ApiConnector {
             f.setAccessible(true);
             if (!f.getName().endsWith("_refs") || f.getName().endsWith("_back_refs")) {
                 continue;
-            }
+            } 
             List<ObjectReference<ApiPropertyBase>> nv;
             try {
                 nv = (List<ObjectReference<ApiPropertyBase>>)f.get(obj);
@@ -597,9 +604,9 @@ public class ApiConnectorMock implements ApiConnector {
                 continue;
             }
 
-            if (nv == null || nv.isEmpty()) {
+            if (nv == null || nv.isEmpty()) { 
                 s_logger.debug("no refs of type: " + f.getName());
-                continue;
+                continue; 
             }
 
             String refName = f.getName().substring(0, f.getName().lastIndexOf("_refs"));
@@ -610,15 +617,15 @@ public class ApiConnectorMock implements ApiConnector {
                  updateField(ref, "uuid", uuid);
                  ApiObjectBase refObj = findById(refCls, uuid);
                  if (refObj == null) {
-                    s_logger.debug("Can not find obj for class: " + _apiBuilder.getTypename(refCls)
+                    s_logger.debug("Can not find obj for class: " + _apiBuilder.getTypename(refCls) 
                                           + ", uuid: " + ref.getUuid() +" , href: " + ref.getHRef());
-                    throw new IOException("Obj " + obj.getName() + " has a reference of type<" + _apiBuilder.getTypename(refCls) + ", but object does not exist");
+                    throw new IOException("Obj " + obj.getName() + " has a reference of type<" + _apiBuilder.getTypename(refCls) + ", but object does not exist"); 
                  }
                  s_logger.debug("Establish backref on(cls, obj) : " + _apiBuilder.getTypename(refCls) + " => " + refObj.getName() + " with ref(cls, obj): " + _apiBuilder.getTypename(cls) + ", " + obj.getName());
-                 updateObject(refObj, obj, getRefname(obj.getClass()) + "_back_refs");
+                 updateObject(refObj, obj, getRefname(obj.getClass()) + "_back_refs"); 
             }
         }
-        return;
+        return;        
     }
 
     private void updateField(ObjectReference<ApiPropertyBase> obj, String fieldName, String value)
@@ -630,7 +637,7 @@ public class ApiConnectorMock implements ApiConnector {
             field = cls.getDeclaredField(fieldName);
             field.setAccessible(true);
         } catch (Exception e) {
-            s_logger.debug("no field " + fieldName + ", \n" + e);
+            s_logger.debug("no field " + fieldName + ", \n" + e); 
             return;
         }
         try {
@@ -638,7 +645,7 @@ public class ApiConnectorMock implements ApiConnector {
         } catch (Exception ex) {
              s_logger.warn("Unable to set " + field.getName() + ": " + ex.getMessage());
         }
-        s_logger.debug("Updated " + fieldName + " to " + value + " \n" );
+        s_logger.debug("Updated " + fieldName + " to " + value + " \n" ); 
     }
     private void updateObjectVerify(ApiObjectBase obj, ApiObjectBase other, String fieldName) throws IOException {
         s_logger.debug("updateObjectVerify(cls, obj, other-cls, other, field): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() + "," + _apiBuilder.getTypename(other.getClass()) + ", " + other.getName() + "," + fieldName);
@@ -649,8 +656,8 @@ public class ApiConnectorMock implements ApiConnector {
             fRefs = cls.getDeclaredField(fieldName);
             fRefs.setAccessible(true);
         } catch (Exception e) {
-            s_logger.debug("no field " + fieldName + ", \n" + e);
-            throw new IOException("no field " + fieldName + ", \n" + e);
+            s_logger.debug("no field " + fieldName + ", \n" + e); 
+            throw new IOException("no field " + fieldName + ", \n" + e); 
         }
         List<ObjectReference<ApiPropertyBase>> nv;
         try {
@@ -671,7 +678,7 @@ public class ApiConnectorMock implements ApiConnector {
             fRefs = cls.getDeclaredField(fieldName);
             fRefs.setAccessible(true);
         } catch (Exception e) {
-            s_logger.debug("no field " + fieldName + ", \n" + e);
+            s_logger.debug("no field " + fieldName + ", \n" + e); 
             return;
         }
         List<ObjectReference<ApiPropertyBase>> nv;
@@ -688,7 +695,7 @@ public class ApiConnectorMock implements ApiConnector {
 
         ObjectReference<ApiPropertyBase> objRef = new ObjectReference<ApiPropertyBase>();
         String href = "http://localhost:8082/" + _apiBuilder.getTypename(other.getClass()) + '/' + other.getUuid();
-        objRef.setReference(other.getQualifiedName(), null, href, other.getUuid());
+        objRef.setReference(other.getQualifiedName(), null, href, other.getUuid());  
         nv.add(objRef);
         try {
              fRefs.set(obj, nv);
@@ -701,13 +708,8 @@ public class ApiConnectorMock implements ApiConnector {
         List<?extends ApiObjectBase> list = list(cls, null);
         for (ApiObjectBase obj:list) {
             s_logger.debug("Class : " + _apiBuilder.getTypename(cls) + ", name: " + obj.getName());
-        }
+        } 
         return;
     }
-
-    @Override
-    public boolean sync(String uri) throws IOException {
-        return true;
-    }
+    
 }
-

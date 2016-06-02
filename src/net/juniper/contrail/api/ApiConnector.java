@@ -21,7 +21,7 @@ public interface ApiConnector {
     ApiObjectBase findById(Class<? extends ApiObjectBase> cls, String uuid) throws IOException;
     /**
      * Query the api-server name-to-uuid mappings.
-     *
+     * 
      * @param cls the class of the api object.
      * @param parent parent object. If null the default parent for this object type is used.
      * @param name unqualified object name.
@@ -31,7 +31,7 @@ public interface ApiConnector {
     String findByName(Class<? extends ApiObjectBase> cls, ApiObjectBase parent, String name) throws IOException;
     /**
      * Query the api-server name-to-uuid mappings.
-     *
+     * 
      * @param cls the class of the api object.
      * @param fqn fully qualified name as a list of strings.
      * @return the uuid of the specified object, if found.
@@ -42,6 +42,4 @@ public interface ApiConnector {
     List<? extends ApiObjectBase> list(Class <? extends ApiObjectBase> cls, List<String> parent) throws IOException;
     public <T extends ApiPropertyBase> List<? extends ApiObjectBase> getObjects(Class<? extends ApiObjectBase> cls,
             List<ObjectReference<T>> refList) throws IOException;
-
-    public boolean sync(String uri) throws IOException;
 }

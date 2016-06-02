@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
@@ -44,13 +45,13 @@ import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+
 import org.openstack4j.api.OSClient;
 import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.api.exceptions.AuthenticationException;
 
 import com.google.common.collect.ImmutableList;
 
-@SuppressWarnings("deprecation")
 class ApiConnectorImpl implements ApiConnector {
     private static final Logger s_logger =
             Logger.getLogger(ApiConnector.class);
@@ -329,26 +330,13 @@ class ApiConnectorImpl implements ApiConnector {
     public synchronized boolean create(ApiObjectBase obj) throws IOException {
         final String typename = _apiBuilder.getTypename(obj.getClass());
         final String jsdata = ApiSerializer.serializeObject(typename, obj);
-
-        HttpResponse response = null;
-        if (obj instanceof VRouterApiObjectBase) {
-            response = execute(HttpPost.METHOD_NAME, "/" + typename,
-                    new StringEntity(jsdata, ContentType.APPLICATION_JSON));
-        } else {
-            response = execute(HttpPost.METHOD_NAME, "/" + typename + "s",
+        final HttpResponse response = execute(HttpPost.METHOD_NAME, "/" + typename + "s",
                 new StringEntity(jsdata, ContentType.APPLICATION_JSON));
-        }
 
-        if (response == null ||  response.getStatusLine() == null) {
-            return false;
-        }
-        int status = response.getStatusLine().getStatusCode();
-        if (status != HttpStatus.SC_OK
-                && status != HttpStatus.SC_CREATED
-                && status != HttpStatus.SC_ACCEPTED ) {
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 
             s_logger.error("create api request failed: " + response.getStatusLine().getReasonPhrase());
-            if (status != HttpStatus.SC_NOT_FOUND) {
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_FOUND) {
                 s_logger.error("Failure message: " + getResponseData(response));
             }
             checkResponseKeepAliveStatus(response);
@@ -365,6 +353,10 @@ class ApiConnectorImpl implements ApiConnector {
         String uuid = obj.getUuid();
         if (uuid == null) {
             obj.setUuid(resp.getUuid());
+        } else if (!uuid.equals(resp.getUuid())) {
+            s_logger.warn("Response contains unexpected uuid: " + resp.getUuid());
+            checkResponseKeepAliveStatus(response);
+            return false;
         }
         s_logger.debug("Create " + typename + " uuid: " + obj.getUuid());
         checkResponseKeepAliveStatus(response);
@@ -377,10 +369,6 @@ class ApiConnectorImpl implements ApiConnector {
         final String jsdata = ApiSerializer.serializeObject(typename, obj);
         final HttpResponse response = execute(HttpPut.METHOD_NAME, "/" + typename + '/' + obj.getUuid(),
                 new StringEntity(jsdata, ContentType.APPLICATION_JSON));
-
-        if (response == null || response.getStatusLine() == null) {
-            return false;
-        }
         boolean success = (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK);
         if (!success) {
             s_logger.warn("<< Response:" + response.getStatusLine().getReasonPhrase());
@@ -396,24 +384,24 @@ class ApiConnectorImpl implements ApiConnector {
         final String typename = _apiBuilder.getTypename(obj.getClass());
         final HttpResponse response = execute(HttpGet.METHOD_NAME,
                 "/" + typename + '/' + obj.getUuid(), null);
+        ApiObjectBase resp = null;
 
-        if (response == null || response.getStatusLine() == null) {
-            return false;
-        }
-
-        int status = response.getStatusLine().getStatusCode();
-        if (status != HttpStatus.SC_OK) {
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             s_logger.warn("GET failed: " + response.getStatusLine().getReasonPhrase());
-            if (status != HttpStatus.SC_NOT_FOUND) {
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_FOUND) {
                 s_logger.error("Failure message: " + getResponseData(response));
             }
             checkResponseKeepAliveStatus(response);
             return false;
+        } else {
+            s_logger.debug("Response: " + response);
+            resp = _apiBuilder.jsonToApiObject(getResponseData(response), obj.getClass());
+            if (resp == null) {
+                s_logger.warn("Unable to decode GET response");
+            }
         }
-        s_logger.debug("Response: " + response);
-        ApiObjectBase resp = _apiBuilder.jsonToApiObject(getResponseData(response), obj.getClass());
+
         if (resp == null) {
-            s_logger.warn("Unable to decode GET response");
             checkResponseKeepAliveStatus(response);
             return false;
         }
@@ -429,6 +417,7 @@ class ApiConnectorImpl implements ApiConnector {
 
     @Override
     public synchronized void delete(Class<? extends ApiObjectBase> cls, String uuid) throws IOException {
+
         try {
             if (findById(cls, uuid) == null) {
                 return;
@@ -441,16 +430,9 @@ class ApiConnectorImpl implements ApiConnector {
         final HttpResponse response = execute(HttpDelete.METHOD_NAME,
                 "/" + typename +  '/' + uuid, null);
 
-        if (response == null ||  response.getStatusLine() == null) {
-            return;
-        }
-
-        int status = response.getStatusLine().getStatusCode();
-        if (status != HttpStatus.SC_OK
-                && status != HttpStatus.SC_NO_CONTENT
-                && status != HttpStatus.SC_ACCEPTED ) {
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             s_logger.warn("Delete failed: " + response.getStatusLine().getReasonPhrase());
-            if (status != HttpStatus.SC_NOT_FOUND) {
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_FOUND) {
                 s_logger.error("Failure message: " + getResponseData(response));
             }
             checkResponseKeepAliveStatus(response);
@@ -485,21 +467,17 @@ class ApiConnectorImpl implements ApiConnector {
         final String typename = _apiBuilder.getTypename(cls);
         final HttpResponse response = execute(HttpGet.METHOD_NAME,
                 '/' + typename + '/' + uuid, null);
-
-        if (response == null ||  response.getStatusLine() == null) {
-            return null;
-        }
+        ApiObjectBase object = null;
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             EntityUtils.consumeQuietly(response.getEntity());
             checkResponseKeepAliveStatus(response);
-            return null;
+        } else {
+            object = _apiBuilder.jsonToApiObject(getResponseData(response), cls);
+            if (object == null) {
+                s_logger.warn("Unable to decode find response");
+            }
         }
-        ApiObjectBase object = _apiBuilder.jsonToApiObject(getResponseData(response), cls);
-        if (object == null) {
-            s_logger.warn("Unable to decode find response");
-        }
-
         checkResponseKeepAliveStatus(response);
         return object;
     }
@@ -530,10 +508,6 @@ class ApiConnectorImpl implements ApiConnector {
         final HttpResponse response = execute(HttpPost.METHOD_NAME, "/fqname-to-id",
                 new StringEntity(jsonStr, ContentType.APPLICATION_JSON));
 
-        if (response == null ||  response.getStatusLine() == null) {
-            return null;
-        }
-
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             EntityUtils.consumeQuietly(response.getEntity());
             checkResponseKeepAliveStatus(response);
@@ -561,10 +535,6 @@ class ApiConnectorImpl implements ApiConnector {
     public synchronized List<? extends ApiObjectBase> list(Class<? extends ApiObjectBase> cls, List<String> parent) throws IOException {
         final String typename = _apiBuilder.getTypename(cls);
         final HttpResponse response = execute(HttpGet.METHOD_NAME, '/' + typename + 's', null);
-
-        if (response == null ||  response.getStatusLine() == null) {
-            return null;
-        }
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             s_logger.warn("list failed with :" + response.getStatusLine().getReasonPhrase());
@@ -601,33 +571,5 @@ class ApiConnectorImpl implements ApiConnector {
             list.add(obj);
         }
         return list;
-    }
-
-    @Override
-    public boolean sync(String uri) throws IOException {
-        HttpResponse response = null;
-        String jsdata = "{\"type\":2}";
-        response = execute(HttpPost.METHOD_NAME, uri,
-                new StringEntity(jsdata, ContentType.APPLICATION_JSON));
-
-        if (response == null ||  response.getStatusLine() == null) {
-            return false;
-        }
-
-        int status = response.getStatusLine().getStatusCode();
-        if (status != HttpStatus.SC_OK
-                && status != HttpStatus.SC_CREATED
-                && status != HttpStatus.SC_ACCEPTED
-                && status != HttpStatus.SC_NO_CONTENT ) {
-
-            s_logger.error("sync request failed: " + response.getStatusLine().getReasonPhrase());
-            if (status != HttpStatus.SC_NOT_FOUND) {
-                s_logger.error("Failure message: " + getResponseData(response));
-            }
-            checkResponseKeepAliveStatus(response);
-            return false;
-        }
-
-        return true;
     }
 }

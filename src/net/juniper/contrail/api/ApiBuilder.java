@@ -26,7 +26,7 @@ class ApiBuilder {
 
     ApiBuilder() {
     }
-
+    
     public String getTypename(Class<?> cls) {
         String clsname = cls.getName();
         int loc = clsname.lastIndexOf('.');
@@ -58,12 +58,7 @@ class ApiBuilder {
             s_logger.warn("Unable to parse response");
             return null;
         }
-        JsonElement element = null;
-        if (cls.getGenericSuperclass() == VRouterApiObjectBase.class) {
-            element = js_obj;
-        } else {
-            element = js_obj.get(typename);
-        }
+        final JsonElement element = js_obj.get(typename);
         if (element == null) {
             s_logger.warn("Element " + typename + ": not found");
             return null;
