@@ -76,6 +76,7 @@ class ApiConnectorImpl implements ApiConnector {
     private DefaultHttpClientConnection _connection;
     private ConnectionReuseStrategy _connectionStrategy;
     public final static int MAX_RETRIES = 5;
+    public final int clientId = 2;
 
     public ApiConnectorImpl(String hostname, int port) {
         _api_hostname = hostname;
@@ -85,7 +86,6 @@ class ApiConnectorImpl implements ApiConnector {
         initHttpServerParams(hostname, port);
         _apiBuilder = new ApiBuilder();
     }
-
 
     private void initHttpClient() {
         _params = new SyncBasicHttpParams();
@@ -365,6 +365,11 @@ class ApiConnectorImpl implements ApiConnector {
         String uuid = obj.getUuid();
         if (uuid == null) {
             obj.setUuid(resp.getUuid());
+        } else if (!uuid.equals(resp.getUuid())
+                && !(obj instanceof VRouterApiObjectBase)) {
+            s_logger.warn("Response contains unexpected uuid: " + resp.getUuid());
+            checkResponseKeepAliveStatus(response);
+            return false;
         }
         s_logger.debug("Create " + typename + " uuid: " + obj.getUuid());
         checkResponseKeepAliveStatus(response);
@@ -606,7 +611,7 @@ class ApiConnectorImpl implements ApiConnector {
     @Override
     public boolean sync(String uri) throws IOException {
         HttpResponse response = null;
-        String jsdata = "{\"type\":2}";
+        String jsdata = "{\"type\":" + clientId + "}";
         response = execute(HttpPost.METHOD_NAME, uri,
                 new StringEntity(jsdata, ContentType.APPLICATION_JSON));
 
