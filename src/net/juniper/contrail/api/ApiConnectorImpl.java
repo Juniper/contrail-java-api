@@ -434,11 +434,7 @@ class ApiConnectorImpl implements ApiConnector {
 
     @Override
     public synchronized void delete(Class<? extends ApiObjectBase> cls, String uuid) throws IOException {
-        try {
-            if (findById(cls, uuid) == null) {
-                return;
-            }
-        } catch (IOException ex) {
+        if (findById(cls, uuid) == null) {
             return;
         }
 
