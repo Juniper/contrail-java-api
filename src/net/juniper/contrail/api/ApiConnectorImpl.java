@@ -293,6 +293,16 @@ class ApiConnectorImpl implements ApiConnector {
 
     private void updateObject(ApiObjectBase obj, ApiObjectBase resp) {
         Class<?> cls = obj.getClass();
+
+        // getDeclaredFields doesn't return fields from parent class (ApiObjectBase)
+        // go up the hierarchy until ApiObjectBase inclusively
+        do {
+            updateFields(obj, resp, cls);
+            cls = cls.getSuperclass();
+        } while (cls != Object.class);
+    }
+
+    private void updateFields(ApiObjectBase obj, ApiObjectBase resp, Class<?> cls) {
         for (Field f : cls.getDeclaredFields()) {
             f.setAccessible(true);
             final Object nv;
@@ -316,12 +326,6 @@ class ApiConnectorImpl implements ApiConnector {
                     s_logger.warn("Unable to set " + f.getName() + ": " + ex.getMessage());
                 }
             }
-        }
-
-        // getDeclaredFields doesn't return fields from parent class (ApiObjectBase)
-        // Update parentUuid in parentClass.
-        if (obj.getParentUuid() == null && resp.getParentUuid() != null) {
-            obj.setParentUuid(resp.getParentUuid());
         }
     }
 
