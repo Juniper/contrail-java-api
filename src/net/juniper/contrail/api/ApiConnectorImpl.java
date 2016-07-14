@@ -47,7 +47,7 @@ import org.apache.log4j.Logger;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.api.exceptions.AuthenticationException;
-
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 
 @SuppressWarnings("deprecation")
@@ -242,8 +242,8 @@ class ApiConnectorImpl implements ApiConnector {
             _httpexecutor.postProcess(response, _httpproc, _httpcontext);
         } catch (Exception e) {
             if (retry_count == 0) {
-                s_logger.error("<< Received exception from the Api server, max retries exhausted");
-                e.printStackTrace();
+                s_logger.error("<< Received exception from the Api server, max retries exhausted: " + e);
+                s_logger.error(Throwables.getStackTraceAsString(e));
                 return null;
             }
             s_logger.info("<< Api server connection timed out, retrying " + retry_count + " more times");
