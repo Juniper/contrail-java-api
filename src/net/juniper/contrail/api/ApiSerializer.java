@@ -29,8 +29,9 @@ public class ApiSerializer {
                 js_attr = context.serialize(objref.getAttr());
             }
             obj.add("attr", js_attr);
-            obj.addProperty("href", objref.getHRef());
-            obj.addProperty("uuid", objref.getUuid());
+            if (objref.getUuid() != null) {
+                obj.addProperty("uuid", objref.getUuid());
+            }
            return obj;
         }
     }
