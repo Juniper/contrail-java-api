@@ -17,6 +17,9 @@
       <url>https://github.com/Juniper/contrail-maven/raw/master/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
+  <properties>
+    <generated.types.dir>src/net/juniper/contrail/api/types</generated.types.dir>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -105,11 +108,26 @@
 	    </goals>
 	    <configuration>
 	      <executable>generate-source.sh</executable>
+        <arguments>
+          <argument>${generated.types.dir}</argument>
+        </arguments>
 	    </configuration>
 	  </execution>
 	  </executions>
 	</plugin>
-      <plugin>
+  <plugin>
+    <artifactId>maven-clean-plugin</artifactId>
+    <version>3.0.0</version>
+    <configuration>
+      <filesets>
+        <fileset>
+          <directory>${generated.types.dir}</directory>
+          <followSymlinks>false</followSymlinks>
+        </fileset>
+      </filesets>
+    </configuration>
+  </plugin>
+  <plugin>
 	<groupId>org.codehaus.mojo</groupId>
 	<artifactId>build-helper-maven-plugin</artifactId>
 	<version>1.4</version>
