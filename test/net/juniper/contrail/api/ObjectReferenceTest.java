@@ -12,7 +12,7 @@ import net.juniper.contrail.api.types.SubnetType;
 import net.juniper.contrail.api.types.VirtualMachineInterface;
 import net.juniper.contrail.api.types.VirtualNetwork;
 import net.juniper.contrail.api.types.VnSubnetsType;
-import net.juniper.contrail.api.types.VnSubnetsType.IpamSubnetType;
+import net.juniper.contrail.api.types.IpamSubnetType;
 import junit.framework.TestCase;
 
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class ObjectReferenceTest extends TestCase {
         NetworkIpam ipam = new NetworkIpam();
         ipam.setName("testipam");
         VnSubnetsType subnets = new VnSubnetsType();
-        subnets.addIpamSubnets(new VnSubnetsType.IpamSubnetType(new SubnetType("192.168.0.0", 24), "192.168.0.254", null, UUID.randomUUID().toString(), false, null, null, false, null, null, vn.getName() + "-subnet", 1));
+        subnets.addIpamSubnets(new IpamSubnetType(new SubnetType("192.168.0.0", 24), "192.168.0.254", null, UUID.randomUUID().toString(), false, null, null, false, null, null, vn.getName() + "-subnet", 1));
         vn.setNetworkIpam(ipam, subnets);
         String jsdata = ApiSerializer.serializeObject("virtual-network", vn);
         assertNotSame(jsdata, -1, jsdata.indexOf("192.168.0.0"));
