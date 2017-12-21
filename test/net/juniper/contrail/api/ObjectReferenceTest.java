@@ -55,7 +55,7 @@ public class ObjectReferenceTest extends TestCase {
         final JsonObject js_obj = parser.parse(jsdata).getAsJsonObject();
         final JsonElement element = js_obj.get("virtual-network");
         VirtualNetwork result = (VirtualNetwork) ApiSerializer.deserialize(element.toString(), VirtualNetwork.class);
-        List<IpamSubnetType> iplist = result.getNetworkIpam().get(0).attr.getIpamSubnets();
+        List<IpamSubnetType> iplist = result.getNetworkIpam().get(0).getAttr().getIpamSubnets();
         assertSame(1, iplist.size());
         assertEquals("192.168.0.0", iplist.get(0).getSubnet().getIpPrefix());
     }
@@ -70,7 +70,7 @@ public class ObjectReferenceTest extends TestCase {
         Gson json = ApiSerializer.getDeserializer();
         ObjectReference<?> result = json.fromJson(item.toString(), ObjectReference.class);
 	assertNotNull(result);
-	assertEquals("testPolicy", result.to.get(2));
+	assertEquals("testPolicy", result.getReferredName().get(2));
     }
     @Test
     /**
