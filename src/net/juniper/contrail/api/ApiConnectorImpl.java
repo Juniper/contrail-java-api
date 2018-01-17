@@ -196,7 +196,7 @@ class ApiConnectorImpl implements ApiConnector {
         }
 
         _authtoken = null;
-        if (_authtype == "keystone") {
+        if ("keystone".equals(_authtype)) {
             try {
                 OSClient os = OSFactory.builder().endpoint(_authurl)
                     .credentials(_username, _password).tenantName(_tenant).authenticate();
