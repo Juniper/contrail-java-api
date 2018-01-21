@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.io.File;
 import net.juniper.contrail.api.ApiObjectBase;
 import net.juniper.contrail.api.types.InstanceIp;
+import net.juniper.contrail.api.types.IpamSubnetType;
 import net.juniper.contrail.api.types.NetworkIpam;
 import net.juniper.contrail.api.types.SubnetType;
 import net.juniper.contrail.api.types.VirtualMachine;
@@ -197,7 +198,7 @@ public class ApiTestCommon {
         }
 
         VnSubnetsType subnet = new VnSubnetsType();
-        subnet.addIpamSubnets(new VnSubnetsType.IpamSubnetType(new SubnetType("10.0.1.0", 24), "10.0.1.254", null, UUID.randomUUID().toString(), false, null, null, false, null, null, net.getName() + "-subnet", 1));
+        subnet.addIpamSubnets(new IpamSubnetType(new SubnetType("10.0.1.0", 24), "10.0.1.254", null, UUID.randomUUID().toString(), false, null, null, false, null, null, net.getName() + "-subnet", 1));
         net.setNetworkIpam(ipam, subnet);
 
         VirtualMachine vm = new VirtualMachine();

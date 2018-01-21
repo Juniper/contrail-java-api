@@ -686,9 +686,8 @@ public class ApiConnectorMock implements ApiConnector {
              nv = new ArrayList<ObjectReference<ApiPropertyBase>>();
         }
 
-        ObjectReference<ApiPropertyBase> objRef = new ObjectReference<ApiPropertyBase>();
         String href = "http://localhost:8082/" + _apiBuilder.getTypename(other.getClass()) + '/' + other.getUuid();
-        objRef.setReference(other.getQualifiedName(), null, href, other.getUuid());
+        ObjectReference<ApiPropertyBase> objRef = new ObjectReference<ApiPropertyBase>(other.getQualifiedName(), null, href, other.getUuid());
         nv.add(objRef);
         try {
              fRefs.set(obj, nv);
