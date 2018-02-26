@@ -106,7 +106,7 @@ public class ApiConnectorMock implements ApiConnector {
     }
 
     public ApiConnectorMock(String hostname, int port) {
-	this();
+    this();
     }
 
     public void initConfig() {
@@ -232,6 +232,10 @@ public class ApiConnectorMock implements ApiConnector {
     }
     @Override
     public ApiConnector authServer(String type, String url) {
+        return this;
+    }
+    @Override
+    public ApiConnector strict(boolean strict) {
         return this;
     }
     @Override

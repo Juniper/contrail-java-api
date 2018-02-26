@@ -32,7 +32,7 @@ public abstract class ApiObjectBase implements Serializable {
         return this.parent;
     }
     
-    public void setParent(ApiObjectBase parent) {
+    protected void setParent(ApiObjectBase parent) {
         this.parent = parent;
         if (name != null) {
             setName(name);
@@ -90,4 +90,5 @@ public abstract class ApiObjectBase implements Serializable {
     public abstract String getObjectType();
     public abstract List<String> getDefaultParent();
     public abstract String getDefaultParentType();
+    public abstract boolean hasAmbiguousParents();
 }

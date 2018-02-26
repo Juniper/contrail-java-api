@@ -12,6 +12,7 @@ public interface ApiConnector {
     ApiConnector tenantName(String tenantName);
     ApiConnector authToken(String token);
     ApiConnector authServer(String type, String url);
+    ApiConnector strict(boolean strict);
 
     boolean create(ApiObjectBase obj) throws IOException;
     boolean read(ApiObjectBase obj) throws IOException;
