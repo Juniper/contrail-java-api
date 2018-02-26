@@ -45,4 +45,6 @@ public interface ApiConnector {
             List<ObjectReference<T>> refList) throws IOException;
 
     public boolean sync(String uri) throws IOException;
+
+    public void dispose();
 }

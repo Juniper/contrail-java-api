@@ -178,14 +178,9 @@ class ApiConnectorImpl implements ApiConnector {
         return;
     }
 
-    protected void finalize() throws Throwable {
-        try {
-            if (_connection.isOpen()) {
-                _connection.close();        // close server connection
-            }
-        } finally {
-            super.finalize();
-        }
+    @Override
+    protected void finalize() {
+        dispose();
     }
 
 
@@ -652,5 +647,16 @@ class ApiConnectorImpl implements ApiConnector {
         }
 
         return true;
+    }
+
+    @Override
+    public void dispose() {
+        try {
+            if (_connection.isOpen()) {
+                _connection.close();        // close server connection
+            }
+        } catch (IOException ex) {
+            s_logger.warn("Exception while closing server connection: " + ex.getMessage());
+        }
     }
 }

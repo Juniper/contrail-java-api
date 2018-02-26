@@ -712,5 +712,9 @@ public class ApiConnectorMock implements ApiConnector {
     public boolean sync(String uri) throws IOException {
         return true;
     }
+
+    @Override
+    public void dispose() {
+    }
 }
 
