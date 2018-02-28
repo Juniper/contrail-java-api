@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 
 @SuppressWarnings("serial")
-public class Port  extends VRouterApiObjectBase  {
+public class Port extends VRouterApiObjectBase  {
 
     private static final String NONE = "None";
 
@@ -35,6 +35,11 @@ public class Port  extends VRouterApiObjectBase  {
     @Override
     public String getDefaultParentType() {
         return "project";
+    }
+
+    @Override
+    public boolean hasAmbiguousParents() {
+        return false;
     }
 
     public String getId() {
