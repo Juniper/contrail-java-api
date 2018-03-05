@@ -1,7 +1,7 @@
 package net.juniper.contrail.api;
 
 import java.util.List;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.gson.annotations.SerializedName;
 
 @SuppressWarnings("serial")
@@ -29,17 +29,12 @@ public class Port extends VRouterApiObjectBase  {
 
     @Override
     public List<String> getDefaultParent() {
-        return ImmutableList.of("default-domain", "default-project");
+        return Lists.newArrayList("default-domain", "default-project");
     }
 
     @Override
     public String getDefaultParentType() {
         return "project";
-    }
-
-    @Override
-    public boolean hasAmbiguousParents() {
-        return false;
     }
 
     public String getId() {

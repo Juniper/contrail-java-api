@@ -66,7 +66,6 @@ class ApiConnectorImpl implements ApiConnector {
     private String _authtoken;
     private String _authtype;
     private String _authurl;
-    private boolean _strict;
 
     // HTTP Connection parameters
     private HttpParams _params;
@@ -83,7 +82,6 @@ class ApiConnectorImpl implements ApiConnector {
         _api_hostname = hostname;
         _api_port = port;
         _has_input_authtoken = true;
-        _strict = true;
         initHttpClient();
         initHttpServerParams(hostname, port);
         _apiBuilder = new ApiBuilder();
@@ -150,12 +148,6 @@ class ApiConnectorImpl implements ApiConnector {
         _has_input_authtoken = false;
         _authtype = type;
         _authurl = url;
-        return this;
-    }
-
-    @Override
-    public ApiConnector strict(boolean strict) {
-        _strict = strict;
         return this;
     }
 
@@ -337,15 +329,6 @@ class ApiConnectorImpl implements ApiConnector {
         }
     }
 
-    private String missingParentMessage(ApiObjectBase obj) {
-        return "Parent for object of type " + obj.getClass().getSimpleName() + " needs to be provided explicitly.";
-    }
-
-    private void validateObject(ApiObjectBase obj) {
-        if (_strict && obj.hasAmbiguousParents() && obj.getParent() == null)
-            throw new IllegalArgumentException(missingParentMessage(obj));
-    }
-
     @Override
     public synchronized boolean create(ApiObjectBase obj) throws IOException {
         final String typename = _apiBuilder.getTypename(obj.getClass());
@@ -356,7 +339,7 @@ class ApiConnectorImpl implements ApiConnector {
             response = execute(HttpPost.METHOD_NAME, "/" + typename,
                     new StringEntity(jsdata, ContentType.APPLICATION_JSON));
         } else {
-            validateObject(obj);
+            obj.updateQualifiedName();
             response = execute(HttpPost.METHOD_NAME, "/" + typename + "s",
                 new StringEntity(jsdata, ContentType.APPLICATION_JSON));
         }
