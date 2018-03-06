@@ -99,7 +99,7 @@ public class ApiTestCommon {
         try {
             s_logger.info("create '<name=test-network, uuid=" +
                     uuid1 + ">' Virtual Network");
-            assertTrue(_api.create(net1));
+            assertTrue(_api.create(net1).isSuccess());
         } catch (IOException ex) {
             s_logger.warn("create test-network io exception " + ex.getMessage());
             fail(ex.getMessage());
@@ -113,7 +113,7 @@ public class ApiTestCommon {
         try {
             s_logger.info("create '<name=srv-id-assign, uuid=empty" +
                     ">' Virtual Network");
-            assertTrue(_api.create(net2));
+            assertTrue(_api.create(net2).isSuccess());
         } catch (IOException ex) {
             s_logger.warn("create srv-id-assign exception " + ex.getMessage());
             fail(ex.getMessage());
@@ -158,7 +158,7 @@ public class ApiTestCommon {
         project.setName("testProject");
         project.setUuid(UUID.randomUUID().toString());
         try {
-            assertTrue(_api.create(project));
+            assertTrue(_api.create(project).isSuccess());
         } catch (IOException ex) {
             fail(ex.getMessage());
         }
@@ -166,12 +166,12 @@ public class ApiTestCommon {
         policy.setParent(project);
         policy.setName("testPolicy");
         try {
-            assertTrue(_api.create(policy));
+            assertTrue(_api.create(policy).isSuccess());
         } catch (IOException ex) {
             fail(ex.getMessage());
         }
         try {
-            assertTrue(_api.read(project));
+            assertTrue(_api.read(project).isSuccess());
         } catch (IOException ex) {
             fail(ex.getMessage());
         }
@@ -204,7 +204,7 @@ public class ApiTestCommon {
         VirtualMachine vm = new VirtualMachine();
         vm.setName("aa01");
         try {
-            assertTrue(_api.create(vm));
+            assertTrue(_api.create(vm).isSuccess());
         } catch (IOException ex) {
             fail(ex.getMessage());
         }
@@ -214,8 +214,8 @@ public class ApiTestCommon {
         vmi.setName("test-vmi");
 
         try {
-            assertTrue(_api.create(vmi));
-            assertTrue(_api.create(net));
+            assertTrue(_api.create(vmi).isSuccess());
+            assertTrue(_api.create(net).isSuccess());
         } catch (IOException ex) {
             fail(ex.getMessage());
         }
@@ -225,9 +225,9 @@ public class ApiTestCommon {
         ip_obj.setVirtualNetwork(net);
         ip_obj.setVirtualMachineInterface(vmi);
         try {
-            assertTrue(_api.create(ip_obj));
+            assertTrue(_api.create(ip_obj).isSuccess());
             // Must perform a GET in order to update the object contents.
-            assertTrue(_api.read(ip_obj));
+            assertTrue(_api.read(ip_obj).isSuccess());
             assertNotNull(ip_obj.getAddress());
 
             _api.delete(ip_obj);
