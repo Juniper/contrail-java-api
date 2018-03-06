@@ -13,11 +13,11 @@ public interface ApiConnector {
     ApiConnector authToken(String token);
     ApiConnector authServer(String type, String url);
 
-    boolean create(ApiObjectBase obj) throws IOException;
-    boolean read(ApiObjectBase obj) throws IOException;
-    boolean update(ApiObjectBase obj) throws IOException;
-    void delete(ApiObjectBase obj) throws IOException;
-    void delete(Class<? extends ApiObjectBase> cls, String uuid) throws IOException;
+    Status create(ApiObjectBase obj) throws IOException;
+    Status read(ApiObjectBase obj) throws IOException;
+    Status update(ApiObjectBase obj) throws IOException;
+    Status delete(ApiObjectBase obj) throws IOException;
+    Status delete(Class<? extends ApiObjectBase> cls, String uuid) throws IOException;
     ApiObjectBase findById(Class<? extends ApiObjectBase> cls, String uuid) throws IOException;
     /**
      * Query the api-server name-to-uuid mappings.
@@ -40,10 +40,10 @@ public interface ApiConnector {
     ApiObjectBase find(Class<? extends ApiObjectBase> cls, ApiObjectBase parent, String name) throws IOException;
     ApiObjectBase findByFQN(Class<? extends ApiObjectBase> cls, String fullName) throws IOException;
     List<? extends ApiObjectBase> list(Class <? extends ApiObjectBase> cls, List<String> parent) throws IOException;
-    public <T extends ApiPropertyBase> List<? extends ApiObjectBase> getObjects(Class<? extends ApiObjectBase> cls,
+    <T extends ApiPropertyBase> List<? extends ApiObjectBase> getObjects(Class<? extends ApiObjectBase> cls,
             List<ObjectReference<T>> refList) throws IOException;
 
-    public boolean sync(String uri) throws IOException;
+    Status sync(String uri) throws IOException;
 
     public void dispose();
 }
