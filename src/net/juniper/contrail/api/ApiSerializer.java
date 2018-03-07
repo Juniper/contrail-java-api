@@ -134,6 +134,7 @@ public class ApiSerializer {
 
     static String serializeObject(String typename, ApiObjectBase obj) {
         Gson json = getSerializer();
+        obj.updateQualifiedName();
         if (obj instanceof VRouterApiObjectBase) {
                 JsonElement el =  json.toJsonTree(obj);
                 return el.toString();

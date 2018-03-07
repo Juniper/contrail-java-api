@@ -17,10 +17,10 @@ public abstract class ApiObjectBase implements Serializable {
     private String parent_uuid;
 
     public String getName() {
-	if (name == null && fq_name != null) {
-	    return fq_name.get(fq_name.size() - 1);
-	}
-	return name;
+        if (name == null && fq_name != null) {
+            name = fq_name.get(fq_name.size() - 1);
+        }
+        return name;
     }
 
     /**
@@ -29,66 +29,64 @@ public abstract class ApiObjectBase implements Serializable {
      * @return parent
      */
     public ApiObjectBase getParent() {
-        return this.parent;
+        return parent;
     }
     
     protected void setParent(ApiObjectBase parent) {
         this.parent = parent;
-        if (name != null) {
-            setName(name);
+        this.fq_name = null;
+        if (parent != null) {
+            parent_type = parent.getObjectType();
+            parent_uuid = parent.getUuid();
+        } else {
+            parent_type = null;
+            parent_uuid = null;
         }
     }
 
     public void setName(String name) {
-	this.name = name;
-	if (parent != null) {
-	    fq_name = new ArrayList<String>(parent.getQualifiedName());
-	    parent_type = parent.getObjectType();
-	} else {
-	    fq_name = new ArrayList<String>(getDefaultParent());
-	    parent_type = getDefaultParentType();
-	}
-	fq_name.add(name);
+        this.name = name;
+        if (fq_name != null) {
+            fq_name.set(fq_name.size() - 1, name);
+        }
     }
 
     public String getUuid() {
-	return uuid;
+    return uuid;
     }
     public void setUuid(String uuid) {
-	this.uuid = uuid;
+    this.uuid = uuid;
     }
 
     public String getParentUuid() {
         return parent_uuid;
-    }
-    
-    public void setParentUuid(String uuid) {
-        this.parent_uuid = uuid;
     }
 
     public String getParentType() {
         return parent_type;
     }
 
-    public void setParentType(String parent_type) {
-        this.parent_type = parent_type;
+    protected void updateQualifiedName() {
+        if (fq_name == null) {
+            List<String> parent_qn;
+            if (parent != null) {
+                parent_qn = parent.getQualifiedName();
+            } else {
+                parent_qn = getDefaultParent();
+                if (parent_qn == null)
+                    throw new IllegalStateException("Parent of type " + getClass().getSimpleName() + " has to be specified explicitly.");
+            }
+            parent_qn.add(name);
+            fq_name = parent_qn;
+        }
     }
 
     public List<String> getQualifiedName() {
-        return fqNameToList();
-    }
-
-    public List<String> fqNameToList() {
-        List<String> lst = new ArrayList<String>();
-        Iterator<String> iterator = fq_name.iterator();
-        while (iterator.hasNext()) {
-	    lst.add(iterator.next());
-        }
-        return lst;
+        updateQualifiedName();
+        return new ArrayList<String>(fq_name);
     }
 
     public abstract String getObjectType();
     public abstract List<String> getDefaultParent();
     public abstract String getDefaultParentType();
-    public abstract boolean hasAmbiguousParents();
 }

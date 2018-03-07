@@ -235,10 +235,6 @@ public class ApiConnectorMock implements ApiConnector {
         return this;
     }
     @Override
-    public ApiConnector strict(boolean strict) {
-        return this;
-    }
-    @Override
     public synchronized boolean create(ApiObjectBase obj) throws IOException {
         s_logger.debug("create(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
         if (validate(obj) == false) {
@@ -284,7 +280,7 @@ public class ApiConnectorMock implements ApiConnector {
                          + ") => child (" + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName() + ")");
                 /* update parent object with new child info */
                 updateObject(parent, obj, getRefname(obj.getClass()) + "s");
-                obj.setParentUuid(parent.getUuid());
+                obj.setParent(parent);
             } catch (Exception e) {
                 s_logger.debug("Exception in updateObject : " + e);
             }

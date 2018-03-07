@@ -35,6 +35,8 @@ public class ObjectReferenceTest extends TestCase {
         vn.setUuid(UUID.randomUUID().toString());
         vmi.setName("x-0");
         vmi.setVirtualNetwork(vn);
+        Project project = new Project();
+        vmi.setParent(project);
         String jsdata = ApiSerializer.serializeObject("virtual-machine-interface", vmi);
         assertNotSame(jsdata, -1, jsdata.indexOf("\"attr\":null"));
     }
