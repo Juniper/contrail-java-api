@@ -1,0 +1,13 @@
+Source: libcontrail-java-api
+Section: java
+Priority: optional
+Maintainer: OpenContrail developers <dev@lists.opencontrail.org>
+Build-Depends: debhelper (>= 9), javahelper
+Standards-Version: 3.9.3
+Homepage: https://github.com/Juniper/contrail-java-api
+
+Package: libcontrail-java-api
+Architecture: all
+Depends: ${java:Depends}, ${misc:Depends}
+Description: Contrail VNC API Java Library
+ This is contrail-vnc Java API bindings.
