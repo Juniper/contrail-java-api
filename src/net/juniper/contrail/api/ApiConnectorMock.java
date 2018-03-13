@@ -235,12 +235,12 @@ public class ApiConnectorMock implements ApiConnector {
         return this;
     }
     @Override
-    public synchronized boolean create(ApiObjectBase obj) throws IOException {
+    public synchronized Status create(ApiObjectBase obj) throws IOException {
         s_logger.debug("create(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
-        if (validate(obj) == false) {
+        if (!validate(obj)) {
             s_logger.error("can not create (cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", "
                            + obj.getName() + ", validate failed");
-            return false;
+            return Status.failure("Validation failed");
         }
         String uuid = obj.getUuid();
         if (uuid == null) {
@@ -264,7 +264,7 @@ public class ApiConnectorMock implements ApiConnector {
         }
         if (uuidMap.get(uuid) != null || fqnMap.get(fqn) != null) {
             s_logger.warn("api object: " + obj.getName() + " already exists");
-            return false;
+            return Status.failure("Object already exists");
         }
         uuidMap.put(uuid, obj);
         fqnMap.put(fqn, obj);
@@ -291,7 +291,7 @@ public class ApiConnectorMock implements ApiConnector {
         updateRefs(obj);
         /* assign auto property, if any */
         assignAutoProperty(obj);
-        return true;
+        return Status.success();
     }
 
     ApiObjectBase getDefaultParent(ApiObjectBase obj) {
@@ -304,15 +304,15 @@ public class ApiConnectorMock implements ApiConnector {
     }
 
     @Override
-    public synchronized boolean update(ApiObjectBase obj) throws IOException {
+    public synchronized Status update(ApiObjectBase obj) throws IOException {
         s_logger.debug("update(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
         String fqn = getFqnString(obj.getQualifiedName());
         if (fqn == null) {
-            return false;
+            return Status.failure("Object does not have qualified name.");
         }
         List clsData = getClassData(obj.getClass());
         if (clsData == null) {
-            return false;
+            return Status.failure("No class data.");
         }
         HashMap<String, ApiObjectBase> uuidMap =  getUuidMap(clsData);
         HashMap<String, ApiObjectBase> fqnMap =  getFqnMap(clsData);
@@ -320,74 +320,75 @@ public class ApiConnectorMock implements ApiConnector {
         String uuid = old.getUuid();
         fqnMap.put(fqn, obj);
         uuidMap.put(uuid, obj);
-        return true;
+        return Status.success();
     }
 
     @Override
-    public synchronized boolean read(ApiObjectBase obj) throws IOException {
+    public synchronized Status read(ApiObjectBase obj) throws IOException {
         s_logger.debug("read(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
         String fqn = getFqnString(obj.getQualifiedName());
         if (fqn == null) {
-            return false;
+            return Status.failure("Object does not have qualified name.");
         }
         List clsData = getClassData(obj.getClass());
         if (clsData == null) {
-            return false;
+            return Status.failure("No class data.");
         }
         HashMap<String, ApiObjectBase> fqnMap =  getFqnMap(clsData);
         if (fqnMap == null || fqnMap.get(fqn) == null) {
-            return false;
+            return Status.failure("No qualified name.");
         }
         obj = fqnMap.get(fqn);
-        return true;
+        return Status.success();
     }
 
     @Override
-    public void delete(ApiObjectBase obj) throws IOException {
+    public Status delete(ApiObjectBase obj) throws IOException {
         s_logger.debug("delete(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + "," + obj.getName());
         if (isChildrenExists(obj)) {
             s_logger.warn("children exist, can not delete");
-            return;
+            return Status.failure("Object already exists.");
         }
         String uuid = obj.getUuid();
         String fqn = getFqnString(obj.getQualifiedName());
         if (fqn == null || uuid == null) {
             s_logger.debug("can not delete - no uuid/fqn");
-            return;
+            return Status.failure("UUID or FQN not specified.");
         }
         List clsData = getClassData(obj.getClass());
         if (clsData == null) {
             s_logger.debug("can not delete - not exists");
-            return;
+            return Status.success();
         }
         HashMap<String, ApiObjectBase> uuidMap =  getUuidMap(clsData);
         HashMap<String, ApiObjectBase> fqnMap =  getFqnMap(clsData);
         fqnMap.remove(fqn);
         uuidMap.remove(uuid);
-        return;
+        return Status.success();
     }
 
     @Override
-    public synchronized void delete(Class<? extends ApiObjectBase> cls, String uuid) throws IOException {
+    public synchronized Status delete(Class<? extends ApiObjectBase> cls, String uuid) throws IOException {
         s_logger.debug("delete(cls, uuid): " + _apiBuilder.getTypename(cls) + ", " + uuid);
         List clsData = getClassData(cls);
         if (clsData == null) {
             s_logger.debug("can not delete - not exists");
-            return;
+            return Status.success();
         }
         HashMap<String, ApiObjectBase> uuidMap =  getUuidMap(clsData);
         HashMap<String, ApiObjectBase> fqnMap =  getFqnMap(clsData);
 
         ApiObjectBase obj = uuidMap.get(uuid);
         if (obj != null && isChildrenExists(obj)) {
-            s_logger.warn("children exist, can not delete");
-            return;
+            String reason = "Cannot delete object having children.";
+            s_logger.warn(reason);
+            return Status.failure(reason);
         }
         uuidMap.remove(uuid);
         if (obj != null) {
             fqnMap.remove(getFqnString(obj.getQualifiedName()));
         }
-        return;
+        return Status.success();
     }
 
     @Override
@@ -701,12 +702,11 @@ public class ApiConnectorMock implements ApiConnector {
         for (ApiObjectBase obj:list) {
             s_logger.debug("Class : " + _apiBuilder.getTypename(cls) + ", name: " + obj.getName());
         }
-        return;
     }
 
     @Override
-    public boolean sync(String uri) throws IOException {
-        return true;
+    public Status sync(String uri) throws IOException {
+        return Status.success();
     }
 
     @Override
