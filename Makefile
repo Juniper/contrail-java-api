@@ -2,17 +2,23 @@ SRC_VER ?= $(shell cat ./../controller/src/base/version.info)
 BUILDNUM ?= $(shell date -u +%m%d%Y)
 export BUILDTAG ?= $(SRC_VER)-$(BUILDNUM)
 
-all:
-	$(eval BUILDDIR=./../build/java-api)
+build:
+	$(eval BUILDDIR=$(realpath ./../build/java-api))
 	mkdir -p ${BUILDDIR}
 	cp -ar * ${BUILDDIR}
 	cp -ar ../controller ../build/
 	cp -ar ../generateds ../build/
 	(cd ${BUILDDIR}; mvn install)
-	#(cd ${BUILDDIR}; fakeroot debian/rules clean)
-	#(cd ${BUILDDIR}; fakeroot debian/rules binary)
+
+deb: build
 	(cd ${BUILDDIR}; debuild --preserve-envvar=BUILDTAG -i -us -uc -b)
 	@echo "Wrote: ${BUILDDIR}/../libcontrail-java-api_${BUILDTAG}_all.deb"
+
+rpm: build
+	cp rpm/libcontrail-java-api.spec ${BUILDDIR}
+	mkdir -p ${BUILDDIR}/{BUILD,RPMS,SOURCES,SPECS,SRPMS,TOOLS}
+	rpmbuild -bb --define "_topdir ${BUILDDIR}" --define "_buildTag $(BUILDNUM)" --define "_srcVer $(SRC_VER)" rpm/libcontrail-java-api.spec
+
 
 clean:
 	$(eval BUILDDIR=./../build/java-api)
