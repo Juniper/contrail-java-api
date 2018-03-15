@@ -7,4 +7,4 @@
 TARGET=$1
 
 mkdir -p ${TARGET}
-../generateds/generateDS.py -f -o ${TARGET} -g java-api ../controller/src/schema/vnc_cfg.xsd
+../generateds/generateDS.py -f -o ${TARGET} -g java-api ../src/contrail-api-client/schema/vnc_cfg.xsd
