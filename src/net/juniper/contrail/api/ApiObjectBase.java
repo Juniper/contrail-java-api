@@ -71,8 +71,10 @@ public abstract class ApiObjectBase implements Serializable {
             List<String> parent_qn;
             if (parent != null) {
                 parent_qn = parent.getQualifiedName();
+                parent_type = parent.getObjectType();
             } else {
                 parent_qn = getDefaultParent();
+                parent_type = getDefaultParentType();
                 if (parent_qn == null)
                     throw new IllegalStateException("Parent of type " + getClass().getSimpleName() + " has to be specified explicitly.");
             }
