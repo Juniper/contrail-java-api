@@ -375,7 +375,7 @@ class ApiConnectorImpl implements ApiConnector {
         }
 
         Status status;
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             String reason = response.getStatusLine().getReasonPhrase();
             s_logger.warn("<< Response:" + reason);
             status = Status.failure(reason);
