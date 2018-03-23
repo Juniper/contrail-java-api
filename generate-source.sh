@@ -8,4 +8,4 @@ TARGET=$1
 SBTOP=${2:-${DIR}/..}
 
 mkdir -p ${TARGET}
-$SBTOP/tools/generateds/generateDS.py -f -o ${TARGET} -g java-api $SBTOP/src/contrail-api-client/schema/vnc_cfg.xsd
+$SBTOP/src/contrail-api-client/generateds/generateDS.py -f -o ${TARGET} -g java-api $SBTOP/src/contrail-api-client/schema/vnc_cfg.xsd
