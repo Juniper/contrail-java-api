@@ -6,8 +6,7 @@ build:
 	$(eval BUILDDIR=./../build/java-api)
 	mkdir -p ${BUILDDIR}
 	cp -ar * ${BUILDDIR}
-	cp -ar ../controller ../build/
-	cp -ar ../generateds ../build/
+	cp -ar ../src/contrail-api-client/generateds ../build/
 	(cd ${BUILDDIR}; mvn install)
 
 deb: build
