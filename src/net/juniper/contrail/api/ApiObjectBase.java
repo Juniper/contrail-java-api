@@ -84,6 +84,9 @@ public abstract class ApiObjectBase implements Serializable {
     }
 
     public List<String> getQualifiedName() {
+        if ("config-root".equals(getObjectType()))
+            return new ArrayList<String>();
+
         updateQualifiedName();
         return new ArrayList<String>(fq_name);
     }
