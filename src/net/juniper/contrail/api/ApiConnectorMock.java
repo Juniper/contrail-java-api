@@ -129,13 +129,6 @@ public class ApiConnectorMock implements ApiConnector {
             }
         } catch (Exception e) {
                 s_logger.debug("buildDefaultConfig: " + e);
-        } finally {
-                if (ois != null) {
-                    try {
-                        ois.close()
-                    } catch (IOException e)
-                        s_logger.debug("buildDefaultConfig: " + e);
-                }
         }
     }
 
