@@ -13,6 +13,8 @@ public interface ApiConnector {
     ApiConnector authToken(String token);
     ApiConnector authServer(String type, String url);
 
+    Status commitDrafts(ApiObjectBase obj) throws IOException;
+    Status rejectDrafts(ApiObjectBase obj) throws IOException;
     Status create(ApiObjectBase obj) throws IOException;
     Status read(ApiObjectBase obj) throws IOException;
     Status update(ApiObjectBase obj) throws IOException;
