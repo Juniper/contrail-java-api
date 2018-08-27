@@ -9,6 +9,8 @@ import java.lang.reflect.Field;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.gson.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
@@ -307,6 +309,47 @@ class ApiConnectorImpl implements ApiConnector {
 
     private Status noResponseStatus() {
         return Status.failure("No response from API server.");
+    }
+
+    @Override
+    public synchronized Status commitDrafts(ApiObjectBase obj) throws IOException {
+        return draftOperation("commit", obj.getUuid());
+    }
+
+    @Override
+    public synchronized Status discardDrafts(ApiObjectBase obj) throws IOException {
+        return draftOperation("discard", obj.getUuid());
+    }
+
+    private Status draftOperation(String action, String scopeUuid) throws IOException {
+        String jsdata = buildDraftActionJson(action, scopeUuid);
+
+        HttpResponse response = execute(HttpPost.METHOD_NAME, "/security-policy-draft",
+                new StringEntity(jsdata, ContentType.APPLICATION_JSON));
+
+        if (response == null ||  response.getStatusLine() == null) {
+            return noResponseStatus();
+        }
+
+        int status = response.getStatusLine().getStatusCode();
+        if (status != HttpStatus.SC_OK
+                && status != HttpStatus.SC_ACCEPTED ) {
+            String reason = response.getStatusLine().getReasonPhrase();
+            s_logger.warn("<< Response:" + reason);
+            checkResponseKeepAliveStatus(response);
+            return Status.failure(reason);
+        }
+
+        EntityUtils.consumeQuietly(response.getEntity());
+        checkResponseKeepAliveStatus(response);
+        return Status.success();
+    }
+
+    private String buildDraftActionJson(String action, String scopeUuid) {
+        JsonObject jsDict = new JsonObject();
+        jsDict.addProperty("scope_uuid", scopeUuid);
+        jsDict.addProperty("action", action);
+        return jsDict.toString();
     }
 
     @Override

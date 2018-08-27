@@ -304,6 +304,18 @@ public class ApiConnectorMock implements ApiConnector {
     }
 
     @Override
+    public synchronized Status commitDrafts(ApiObjectBase obj) throws IOException {
+        s_logger.debug("commit drafts: " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getUuid());
+        return Status.success();
+    }
+
+    @Override
+    public synchronized Status discardDrafts(ApiObjectBase obj) throws IOException {
+        s_logger.debug("discard drafts: " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getUuid());
+        return Status.success();
+    }
+
+    @Override
     public synchronized Status update(ApiObjectBase obj) throws IOException {
         s_logger.debug("update(cls, obj): " + _apiBuilder.getTypename(obj.getClass()) + ", " + obj.getName());
         String fqn = getFqnString(obj.getQualifiedName());
