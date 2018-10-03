@@ -211,10 +211,10 @@ class ApiConnectorImpl implements ApiConnector {
         BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest(method, uri);
         if (entity != null) {
             request.setEntity(entity);
-            s_logger.info(">> Request: " + method + ", " + request.getRequestLine().getUri() +
+            s_logger.debug(">> Request: " + method + ", " + request.getRequestLine().getUri() +
                     ", " + EntityUtils.toString(entity));
         } else {
-            s_logger.info(">> Request: " + method + ", " + request.getRequestLine().getUri());
+            s_logger.debug(">> Request: " + method + ", " + request.getRequestLine().getUri());
         }
         HttpResponse response  = null;
         request.setParams(_params);
@@ -236,7 +236,7 @@ class ApiConnectorImpl implements ApiConnector {
             return execute_doauth(method, uri, entity, --retry_count);
         }
 
-        s_logger.info("<< Response Status: " + response.getStatusLine());
+        s_logger.debug("<< Response Status: " + response.getStatusLine());
         if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED
                 && retry_count > 0)) {
             if (authenticate()) {
