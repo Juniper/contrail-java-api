@@ -417,18 +417,18 @@ class ApiConnectorImpl implements ApiConnector {
             return noResponseStatus();
         }
 
-        Status status;
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+        int status = response.getStatusLine().getStatusCode();
+        if (status != HttpStatus.SC_OK
+                && status != HttpStatus.SC_ACCEPTED ) {
             String reason = response.getStatusLine().getReasonPhrase();
             s_logger.warn("<< Response:" + reason);
-            status = Status.failure(reason);
-        } else {
-            status = Status.success();
+            checkResponseKeepAliveStatus(response);
+            return Status.failure(reason);
         }
 
         EntityUtils.consumeQuietly(response.getEntity());
         checkResponseKeepAliveStatus(response);
-        return status;
+        return Status.success();
     }
 
     @Override
