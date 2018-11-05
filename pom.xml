@@ -133,6 +133,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <argLine>-Xmx1024m</argLine>
+          <useSystemClassLoader>false</useSystemClassLoader>
           <excludes>
 	    <exclude>**/ContrailApiTest.java</exclude>
 	    <exclude>**/ContrailApiMockTest.java</exclude>
