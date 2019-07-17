@@ -6,7 +6,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TARGET=$1
 SBTOP=${2:-${DIR}/..}
-if [ $(echo "${DIR}" | grep build) ];then
+if [ $(echo "${DIR}" | grep build | grep -v contrail-builder) ];then
 SBTOP="${SBTOP}/.."
 fi
 mkdir -p ${TARGET}
