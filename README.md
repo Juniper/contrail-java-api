@@ -1,4 +1,1 @@
-contrail-java
-=============
-
-OpenContrail Java libraries
+Content was moved to https://github.com/tungstenfabric/tf-java-api
